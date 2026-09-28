@@ -1,0 +1,40 @@
+name: Android APK
+on:
+  workflow_dispatch:
+    inputs:
+      api_url:
+        description: URL HTTPS de la API (terminada en /api)
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Build bundled Android frontend
+        env:
+          VITE_API_URL: ${{ inputs.api_url }}
+        run: npm run android:sync
+      - name: Build signed debug APK for classroom installation
+        run: cd android && bash gradlew assembleDebug --no-daemon
+      - name: Upload installable APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: aventura-kids-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14

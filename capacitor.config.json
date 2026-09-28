@@ -1,0 +1,11 @@
+{
+  "appId": "com.aventurakids.app",
+  "appName": "Aventura Kids",
+  "webDir": "dist",
+  "plugins": {
+    "CapacitorHttp": { "enabled": true }
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}

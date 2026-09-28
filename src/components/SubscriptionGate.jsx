@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAppState } from '../context/AppStateContext.jsx';
 
 import { API_URL } from '../api.js';
+import { isNative, openCheckout } from '../native.js';
 
 export default function SubscriptionGate({ children }) {
   const { auth, logout, subscription: access, subscriptionLoading: loading, subscriptionError } = useAppState();
@@ -17,11 +18,12 @@ export default function SubscriptionGate({ children }) {
       const response = await fetch(`${API_URL}/billing/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json', Authorization: `Bearer ${auth.token}` },
-        body: JSON.stringify({ plan: selectedPlan }),
+        body: JSON.stringify({ plan: selectedPlan, client: isNative ? 'android' : 'web' }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.message || 'No se pudo iniciar el pago.');
-      window.location.assign(data.url);
+      await openCheckout(data.url);
+      setCheckoutLoading(false);
     } catch (checkoutError) {
       setError(checkoutError.message);
       setCheckoutLoading(false);

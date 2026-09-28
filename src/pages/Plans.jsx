@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { API_URL } from '../api.js';
+import { isNative, openCheckout } from '../native.js';
 import { useAppState } from '../context/AppStateContext.jsx';
 
 const PLAN_OPTIONS = [
@@ -72,12 +73,13 @@ export default function Plans() {
           Accept: 'application/json',
           Authorization: `Bearer ${auth.token}`,
         },
-        body: JSON.stringify({ plan: planKey }),
+        body: JSON.stringify({ plan: planKey, client: isNative ? 'android' : 'web' }),
       });
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.message || 'No se pudo iniciar el pago.');
-      window.location.assign(data.url);
+      await openCheckout(data.url);
+      setCheckoutLoading(false);
     } catch (error) {
       alert(error.message || 'No se pudo iniciar tu compra.');
       setCheckoutLoading(false);
