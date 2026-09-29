@@ -1,4 +1,7 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Capacitor, registerPlugin } from '@capacitor/core';
+
+const NativeSpeech = registerPlugin('NativeSpeech');
 
 // Hook que encapsula el AudioContext para reproducir "beeps" sintetizados,
 // equivalente a playBeep() en la versión original.
@@ -53,15 +56,39 @@ export function useSoundEffects() {
 
 // Hook para pronunciación con Web Speech API, equivalente a speak().
 export function useSpeech() {
-  const speak = useCallback((text, lang = 'en-US') => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = lang;
-      utterance.rate = 0.85;
-      window.speechSynthesis.speak(utterance);
+  const [speechError, setSpeechError] = useState('');
+  const utteranceRef = useRef(null);
+  const stop = useCallback(() => {
+    if (Capacitor.isNativePlatform()) NativeSpeech.stop().catch(() => {});
+    else window.speechSynthesis?.cancel();
+    utteranceRef.current = null;
+  }, []);
+  useEffect(() => () => stop(), [stop]);
+  const speak = useCallback(async (text, lang = 'en-US') => {
+    setSpeechError('');
+    if (Capacitor.isNativePlatform()) {
+      try { await NativeSpeech.speak({ text, lang }); }
+      catch (error) { setSpeechError(error.message || 'No se pudo reproducir la voz de Android.'); }
+      return;
     }
+    if (!window.speechSynthesis) {
+      setSpeechError('Este navegador no tiene voz disponible. Prueba desde Chrome o la aplicación Android.');
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
+    utterance.rate = 0.85;
+    const voices = window.speechSynthesis.getVoices();
+    const voice = voices.find((item) => item.lang === lang) || voices.find((item) => item.lang.startsWith(lang.split('-')[0]));
+    if (voice) utterance.voice = voice;
+    utterance.onerror = (event) => {
+      if (!['canceled', 'interrupted'].includes(event.error)) setSpeechError('No se pudo reproducir el audio. Revisa el volumen multimedia y la voz de inglés del dispositivo.');
+    };
+    utteranceRef.current = utterance;
+    window.speechSynthesis.resume();
+    window.speechSynthesis.speak(utterance);
   }, []);
 
-  return { speak };
+  return { speak, stop, speechError };
 }

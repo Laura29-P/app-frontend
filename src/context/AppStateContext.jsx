@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { EXERCISE_BANK, TOTAL_EXERCISES } from '../data/exercises.js';
+import { rewardCorrectAnswer } from '../data/rewards.js';
 
 const STORAGE_KEY = 'aventura_learning_app_responsive_v1';
 const CLIENT_ID_KEY = 'aventura_learning_client_id';
@@ -106,12 +107,7 @@ function reducer(state, action) {
       };
     }
     case 'ANSWER_CORRECT': {
-      if (state.completedExercises[action.exerciseId]) return state;
-      return {
-        ...state,
-        stars: state.stars + 1,
-        completedExercises: { ...state.completedExercises, [action.exerciseId]: true },
-      };
+      return rewardCorrectAnswer(state, action.exerciseId);
     }
     case 'DAILY_MISSION_CORRECT': {
       if (state.dailyMission.status !== 'active') return state;

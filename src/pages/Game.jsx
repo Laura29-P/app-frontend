@@ -35,7 +35,7 @@ const FEEDBACK_CORRECT = {
   variant: 'correct',
   icon: 'sentiment_very_satisfied',
   title: '¡Excelente trabajo!',
-  subtitle: '¡Respuesta correcta! Has ganado +1 ⭐',
+  subtitle: '¡Respuesta correcta! Has ganado +3 ⭐ para tus personajes',
   emoji: '🎉',
 };
 
@@ -50,7 +50,7 @@ const FEEDBACK_WRONG = {
 export default function Game() {
   const { state, subscription, exitGame, answerCorrect, advanceQuestion, dailyMissionCorrect, failDailyMission } = useAppState();
   const { playBeep } = useSoundEffects();
-  const { speak } = useSpeech();
+  const { speak, stop, speechError } = useSpeech();
   const { fireConfetti } = useConfetti();
 
   const maxExercises = subscription?.plan_limits?.max_exercises_per_subject || 5;
@@ -66,6 +66,7 @@ export default function Game() {
   const [missionTimeLeft, setMissionTimeLeft] = useState(0);
 
   const autoTimerRef = useRef(null);
+  const answeredRef = useRef(false);
   const shakeTimerRef = useRef(null);
   const isDailyMission = state.dailyMission.status === 'active';
 
@@ -91,6 +92,8 @@ export default function Game() {
   useEffect(() => {
     if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
     if (shakeTimerRef.current) clearTimeout(shakeTimerRef.current);
+    answeredRef.current = false;
+    stop();
     setAnswered(false);
     setFeedback(FEEDBACK_DEFAULT);
     setDisabledIndices([]);
@@ -141,9 +144,10 @@ export default function Game() {
   };
 
   const handleAnswerSelect = (option, index) => {
-    if (answered) return;
+    if (answeredRef.current) return;
 
     if (option.correct) {
+      answeredRef.current = true;
       setAnswered(true);
       playBeep('correct');
       fireConfetti();
@@ -179,6 +183,8 @@ export default function Game() {
   const handleRepeat = () => {
     if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
     if (shakeTimerRef.current) clearTimeout(shakeTimerRef.current);
+    answeredRef.current = false;
+    stop();
     setAnswered(false);
     setFeedback(FEEDBACK_DEFAULT);
     setDisabledIndices([]);
@@ -268,6 +274,7 @@ export default function Game() {
               <span className="text-[18px]">🔊</span>
               <span>Escuchar pronunciación</span>
             </button>
+            {speechError && <p role="alert" className="mt-2 text-sm font-bold text-error">{speechError}</p>}
           </div>
         )}
       </div>

@@ -3,10 +3,10 @@ import { useAppState } from '../context/AppStateContext.jsx';
 
 import { API_URL } from '../api.js';
 const CHARACTERS = [
-  { id: 'luna', name: 'Luna', emoji: '🦊', price: 10, color: 'from-orange-100 to-amber-200' },
-  { id: 'niko', name: 'Niko', emoji: '🐼', price: 25, color: 'from-slate-100 to-sky-200' },
-  { id: 'sol', name: 'Sol', emoji: '🦁', price: 50, color: 'from-yellow-100 to-orange-200' },
-  { id: 'mara', name: 'Mara', emoji: '🐬', price: 75, color: 'from-cyan-100 to-emerald-200' },
+  { id: 'luna', name: 'Luna', emoji: '🦊', price: 0, color: 'from-orange-100 to-amber-200' },
+  { id: 'niko', name: 'Niko', emoji: '🐼', price: 5, color: 'from-slate-100 to-sky-200' },
+  { id: 'sol', name: 'Sol', emoji: '🦁', price: 10, color: 'from-yellow-100 to-orange-200' },
+  { id: 'mara', name: 'Mara', emoji: '🐬', price: 15, color: 'from-cyan-100 to-emerald-200' },
 ];
 
 export default function Characters() {
@@ -63,7 +63,7 @@ export default function Characters() {
         <div className="text-center"><span className="text-xs font-black uppercase tracking-wider text-secondary">Personaliza tu aventura</span><h1 className="text-2xl font-black">Mis personajes</h1></div>
         <div className="bg-amber-100 text-amber-900 px-3 py-2 rounded-full font-black">⭐ {state.stars}</div>
       </div>
-      <p className="text-center text-sm font-semibold text-on-surface-variant">Usa tus estrellas para comprar personajes. No se realizan cobros de dinero aquí.</p>
+      <p className="text-center text-sm font-semibold text-on-surface-variant">Gana 3 estrellas por cada acierto, incluso al repetir ejercicios, y compra personajes. No se realizan cobros de dinero aquí.</p>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {CHARACTERS.map((character) => {
           const isOwned = owned.includes(character.id);
